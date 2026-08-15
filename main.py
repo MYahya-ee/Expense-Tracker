@@ -21,15 +21,45 @@ class expense:
     def statement(self):
         return(f"{self.name} bought at {self.date}")
 
-def show_expense():
-    with open("python.json", "r") as f:
-        jsdat = json.load(f)            
-    for i in jsdat:
-        print(f"[{i['Id']}] A {i['Name']} was bought for ${i['amount']} on {i['date']}")
+class tracker:
+    def __init__(self):
+        self.expenses = []
 
 
+    def add_expense(self, exp):
+        e1_dict = exp.to_dict()
+        with open("python.json", "r") as f:
+            content = f.read()
+            expenses = json.loads(content) if content.strip() else []
+        expenses.append(e1_dict)
+        with open("python.json", "w") as f:
+            json.dump(expenses, f)
 
+    def get_all(self):
+        with open("python.json", "r") as f:
+            jsdat = json.load(f)            
+        for i in jsdat:
+            print(f"""
+        ID     Name      Amount      Time/Date
+        {i['Id']} {i['Name']} PKR{i['amount']}  {i['date']}
+                """)
+            
+    def remove_single(self, inptid):
+        with open("python.json", "r") as f:
+            redjs = json.load(f)
+        new_list = [e for e in redjs if e["Id"] != inptid]
+        with open("python.json", "w") as f:
+            json.dump(new_list, f)
+        print("Expense has been deleted")
+
+    def remove_all(self):
+        with open("python.json", "w") as f:
+                json.dump([], f)
+        print("All Expenses deleted")
+        
+    
 def main():
+    t = tracker()
     while True:
         inp = input("""
 ========= Expense Tracker =========
@@ -52,48 +82,25 @@ def main():
             case "1":
                 names = input("Enter the name: ")
                 categorys = input("Enter the category: ")
-                try:
-                    amounts = input("Enter the amount: ")
-                except:
-                    print("Invalid number, please enter a number ")
-                e1 = expense(names, amounts, categorys)
-                e1_dict = e1.to_dict()
-                with open("python.json", "r") as f:
-                    expenses = json.load(f)
-                    if not isinstance(expenses, list):  
-                        expenses = []                  
-                expenses.append(e1_dict)
-                with open("python.json", "w") as f:
-                    json.dump(expenses, f)
-                print("Expense was added")
+                amounts = input("Enter the amount: ")
+                tracker.add_expense(expense(names, categorys, amounts))
+                
 
             case "2":
                 print("Here's the list of you expenses")
-                show_expense()
+                tracker.get_all()
 
             case "6":
                 print(f"""Here's the list of you expenses, which one do you want to remove""")
-                show_expense()
+                tracker.get_all()
                 inptid = input()
-                with open("python.json", "r") as f:
-                    redjs = json.load(f)
-                new_redjs = []
-                for e in redjs:
-                    if e["Id"] != inptid:
-                        new_redjs.append(e)
-                with open("python.json", "w") as f:
-                    json.dump(new_redjs, f)
-                print("Expense has been deleted")
+                tracker.remove_single(inptid)
 
             case "7":
                 perm = input("Are you sure you want to remove all expenses, once done, it's irretrievable: ").upper()
                 if perm == "YES":
-                    with open("python.json", "w") as f:
-                        json.dump([], f)
-                    print("All Expenses deleted")
-                    exit()
-                else:
-                    print("Cancelled, returning to menue")
+                    tracker.remove_all()
+            
 
     
 main()
